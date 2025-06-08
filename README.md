@@ -13,8 +13,7 @@
 This app helps people:
 - Navigate emotional struggles with scripture and prayer
 - Reconnect with God through guided steps
-- Join Life Groups and volunteer in ministry
-- Access daily spiritual encouragement
+- Join Life Groups or volunteer in ministry
 
 ---
 
