@@ -1,4 +1,3 @@
-# LMK_Chatbot-Project-2025
 
 # 🙏 HopeBot  Android App
 
