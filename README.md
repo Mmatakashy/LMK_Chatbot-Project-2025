@@ -26,7 +26,6 @@ This app helps people:
 | IDE             | Android Studio                |
 | UI              | XML                           |
 | Backend   | Firebase / REST API /   |
-| Chat Integr.    | UChat API                     |
 | Notifications   | Firebase Cloud Messaging (FCM)|
 
 ---
