@@ -114,7 +114,6 @@ Life Ministry Kenya (LMK) is a branch of Cru International, equipping individual
 📍 Nairobi, Kenya
 📧 info@lifeministrykenya.org
 
-
 🙌 Contributing Guidelines
 # Fork and Clone
 git clone https://github.com/Mmatakashy/LMK_Chatbot-Project-2025.git
