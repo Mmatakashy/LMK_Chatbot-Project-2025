@@ -1,0 +1,27 @@
+{
+  "name": "lmk_chatbot-project-2025",
+  "version": "1.0.0",
+  "description": "**HopeBot** is a spiritually supportive chatbot built with Javascript. It's designed to guide users through emotional, spiritual, and practical life challenges, inspired by the mission of **Life Ministry Kenya**.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mmatakashy/LMK_Chatbot-Project-2025.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Mmatakashy/LMK_Chatbot-Project-2025/issues"
+  },
+  "homepage": "https://github.com/Mmatakashy/LMK_Chatbot-Project-2025#readme",
+  "dependencies": {
+    "body-parser": "^2.2.0",
+    "dialogflow": "^1.2.0",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "firebase-admin": "^13.4.0"
+  }
+}
