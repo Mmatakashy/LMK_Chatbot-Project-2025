@@ -1,5 +1,5 @@
 
-# 🙏 HopeBot  Android App
+# 🙏 HopeBot
 
 **HopeBot** is a spiritually supportive chatbot built with Javascript. It's designed to guide users through emotional, spiritual, and practical life challenges, inspired by the mission of **Life Ministry Kenya**.
 
