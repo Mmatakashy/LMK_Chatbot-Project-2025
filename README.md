@@ -14,36 +14,6 @@ This app helps people:
 - Reconnect with God through guided steps
 - Join Life Groups or volunteer in ministry
 
----
-
-## 🧰 Tech Stack
-
-| Feature Area    | Tools/Tech                    |
-|----------------|-------------------------------|
-| Language        | Java                          |
-| IDE             | Android Studio                |
-| UI              | XML                           |
-| Backend   | Firebase / REST API /   |
-| Notifications   | Firebase Cloud Messaging (FCM)|
-
----
-
-## 📁 Project Structure
-LMK_Chatbot-Project-2025
-│
-├── activities/ # All Activities
-├── adapters/ # RecyclerView Adapters
-├── models/ # Data Models (Prayer, User, Verse)
-├── fragments/ # Modular Fragments
-├── services/ # UChat, Firebase services
-├── utils/ # Helpers and utilities
-├── res/
-│ ├── layout/ # XML layouts
-│ ├── drawable/ # Icons and images
-│ └── values/ # Strings, colors
-└── AndroidManifest.xml
-
----
 
 ## 📲 Features & Flows
 
@@ -77,27 +47,17 @@ Each includes:
 
 ---
 
-## ⚙️ Setup & Installation
-
-### 1. Install Tools
-
-- Download [Android Studio](https://developer.android.com/studio)
-- Install Java JDK 8 or above
-- Set up emulator or physical Android device
-
 ### 2. Clone the Project
 
 ```bash
 git clone https://github.com/Mmatakashy/LMK_Chatbot-Project-2025.git
 cd LMK_Chatbot-Project-2025
-
+```
 3. Open in Android Studio
 File > Open > Select LMK_Chatbot-Project-2025 folder
 
 Let Gradle sync and install dependencies
 
-4. Run the App
-Click ▶️ or use emulator/device
 
 Ensure internet connection for Firebase
 
