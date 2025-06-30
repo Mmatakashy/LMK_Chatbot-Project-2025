@@ -6,26 +6,45 @@ const app = express();
 app.use(bodyParser.json());
 
 app.post('/webhook', async (req, res) => {
+  console.log('Received webhook request:', JSON.stringify(req.body, null, 2));
   const intent = req.body.queryResult.intent.displayName;
 
   if (intent === 'GetBibleVerse') {
     const verse = req.body.queryResult.parameters['bible_verse'];
 
+    if (!verse || verse.trim() === '') {
+      console.warn('No bible_verse parameter provided');
+      return res.json({
+        fulfillmentText: "I didn't receive a Bible verse to look up. Please try again."
+      });
+    }
+
     try {
       const apiResponse = await axios.get(`https://bible-api.com/${encodeURIComponent(verse)}`);
       const data = apiResponse.data;
 
-      const reply = `${data.reference} (${data.translation_name}): ${data.text.trim()}`;
+      if (!data || !data.text) {
+        console.warn('Bible API returned no text for verse:', verse);
+        return res.json({
+          fulfillmentText: "Sorry, I couldn't find that verse. Please try another one."
+        });
+      }
+
+      const reply = `${data.reference} (${data.translation_name || 'NIV'}): ${data.text.trim()}`;
+
+      console.log('Sending fulfillment response:', reply);
 
       res.json({
         fulfillmentText: reply
       });
     } catch (error) {
+      console.error('Error calling Bible API:', error.message || error);
       res.json({
-        fulfillmentText: "Sorry, I couldn't find that verse. Please try another one."
+        fulfillmentText: "Sorry, I couldn't retrieve that Bible verse due to an error. Please try again later."
       });
     }
   } else {
+    console.log('Intent not handled:', intent);
     res.json({
       fulfillmentText: "Intent not handled."
     });
