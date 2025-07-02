@@ -5,6 +5,11 @@ const app = express();
 
 app.use(bodyParser.json());
 
+// ====================
+// Active Webhook Code
+// ====================
+
+// Main webhook endpoint for Dialogflow to handle Bible verse requests
 app.post('/webhook', async (req, res) => {
   console.log('Received webhook request:', JSON.stringify(req.body, null, 2));
   const intent = req.body.queryResult.intent.displayName;
@@ -56,163 +61,145 @@ app.listen(PORT, () => {
   console.log(`🚀 Bible API webhook is running on port ${PORT}`);
 });
 
-// // This code sets up a webhook server using Express and Dialogflow Fulfillment
-// // It initializes Firebase Admin SDK to interact with Firestore and handles incoming requests from Dialogflow
-// var admin = require("firebase-admin");
+// ====================
+// Firebase Admin SDK Initialization for Firestore
+// ====================
+var admin = require("firebase-admin");
+var serviceAccount = require("path/to/serviceAccountKey.json");
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: "https://hopebot-25b4f-default-rtdb.firebaseio.com"
+});
+const db = admin.firestore();
 
-// var serviceAccount = require("path/to/serviceAccountKey.json");
+// ====================
+// Dialogflow Fulfillment Client Setup Example
+// ====================
+const { WebhookClient } = require('dialogflow-fulfillment');
+app.use(express.json());
+app.post('/dialogflow-webhook', (req, res) => {
+  const agent = new WebhookClient({ request: req, response: res });
 
-// admin.initializeApp({
-//   credential: admin.credential.cert(serviceAccount),
-//   databaseURL: "https://hopebot-25b4f-default-rtdb.firebaseio.com"
-// });
+  function welcome(agent) {
+    agent.add('Welcome to HopeBot! How can I help you today?');
+  }
 
+  function fallback(agent) {
+    agent.add('Sorry, I didn’t get that. Can you try again?');
+  }
 
-// // Initialize Firestore
-// // This will allow us to interact with the Firestore database
-//     const db= admin.firestore();
+  function getUserData(agent) {
+    const name = agent.parameters.name; // Assuming name is a parameter in the intent
+    return db.collection('users').add({ name }).then(() => {
+      agent.add(`Thanks ${name}, your data has been saved!`);
+    }).catch((error) => {
+      console.error('Error saving user data:', error);
+    });
+  }
 
-// const express = require('express');
-// const bodyParser = require('body-parser');
-// const { WebhookClient } = require('dialogflow-fulfillment');
-// const axios = require('axios');
-// app.use(express.json());
+  let intentMap = new Map();
+  intentMap.set('Default Welcome Intent', welcome);
+  intentMap.set('Default Fallback Intent', fallback);
+  // Add other intent handlers here
+  agent.handleRequest(intentMap);
+});
 
-// // Import the Dialogflow library and other necessary libraries
-// // This will allow us to send and receive messages from Dialogflow
+// ====================
+// Facebook Messenger Webhook Verification Endpoint
+// ====================
+app.get('/webhook', (req, res) => {
+  let VERIFY_TOKEN = 'hopebot_verify';
+  let mode = req.query['hub.mode'];
+  let token = req.query['hub.verify_token'];
+  let challenge = req.query['hub.challenge'];
 
-// const dialogflow = require('@google-cloud/dialogflow');
-// const uuid = require('uuid');
+  if (mode && token && mode === 'subscribe' && token === VERIFY_TOKEN) {
+    res.status(200).send(challenge);
+  } else {
+    res.sendStatus(403);
+  }
+});
 
-// async function detectIntent(text, sessionId) {
-//     const sessionClient = new dialogflow.SessionsClient({ keyFilename: 'serviceAccountKey.json' });
-//     const sessionPath = sessionClient.projectAgentSessionPath('<PROJECT_ID>', sessionId);
+// ====================
+// Facebook Messenger Webhook Message Receiver and Dialogflow Routing
+// ====================
+app.post('/messenger-webhook', async (req, res) => {
+  let body = req.body;
 
-//     const request = {
-//         session: sessionPath,
-//         queryInput: {
-//             text: {
-//                 text: text,
-//                 languageCode: 'en',
-//             },
-//         },
-//     };
+  if (body.object === 'page') {
+    body.entry.forEach(async function(entry) {
+      let event = entry.messaging[0];
+      let sender = event.sender.id;
 
-//     const responses = await sessionClient.detectIntent(request);
-//     return responses[0].queryResult.fulfillmentText;
-// }
+      if (event.message && event.message.text) {
+        const text = event.message.text;
 
-// const request = require('request');
+        // Send text to Dialogflow
+        const dialogflowResponse = await detectIntent(text, sender);
 
-// function sendMessage(recipientId, message) {
-//     request({
-//         uri: 'https://graph.facebook.com/v12.0/me/messages',
-//         qs: { access_token: '<PAGE_ACCESS_TOKEN>' },
-//         method: 'POST',
-//         json: {
-//             recipient: { id: recipientId },
-//             message: { text: message },
-//         },
-//     });
-// }
+        // Send back to Messenger
+        sendMessage(sender, dialogflowResponse);
+      }
+    });
+    res.status(200).send('EVENT_RECEIVED');
+  } else {
+    res.sendStatus(404);
+  }
+});
 
+// ====================
+// Helper Functions for Dialogflow detectIntent and Facebook sendMessage
+// ====================
+const dialogflow = require('@google-cloud/dialogflow');
+const uuid = require('uuid');
+async function detectIntent(text, sessionId) {
+  const sessionClient = new dialogflow.SessionsClient({ keyFilename: 'serviceAccountKey.json' });
+  const sessionPath = sessionClient.projectAgentSessionPath('<PROJECT_ID>', sessionId);
 
-// // Create an Express application
-// // and set up body-parser middleware to parse JSON requests
-// const app = express();
-// app.use(bodyParser.json());
+  const request = {
+    session: sessionPath,
+    queryInput: {
+      text: {
+        text: text,
+        languageCode: 'en',
+      },
+    },
+  };
 
-// app.post('/bible-webhook', async (req, res) => {
-//   try {
-//     const { book, chapter, verse } = req.body.queryResult.parameters;
-//     const apiUrl = `https://bible-api.com/${book}+${chapter}:${verse}`;
-    
-//     const apiResponse = await axios.get(apiUrl);
-//     const verseData = apiResponse.data;
-    
-//     res.json({
-//       fulfillmentText: `${verseData.reference}: ${verseData.text}`,
-//       source: 'bible-api-webhook'
-//     });
-//   } catch (error) {
-//     console.error(error);
-//     res.json({ fulfillmentText: "Sorry, I couldn't retrieve that Bible verse." });
-//   }
-// });
+  const responses = await sessionClient.detectIntent(request);
+  return responses[0].queryResult.fulfillmentText;
+}
 
-// // Define the webhook endpoint
-// // This endpoint will handle incoming requests from Dialogflow
-// app.post('/webhook', (req, res) => {
-//     const agent = new WebhookClient({ request: req, response: res });
+const request = require('request');
+function sendMessage(recipientId, message) {
+  request({
+    uri: 'https://graph.facebook.com/v12.0/me/messages',
+    qs: { access_token: '<PAGE_ACCESS_TOKEN>' },
+    method: 'POST',
+    json: {
+      recipient: { id: recipientId },
+      message: { text: message },
+    },
+  });
+}
 
-//     // Define the intent handlers
-//     // These functions will respond to specific intents from Dialogflow
-//     function welcome(agent) {
-//         agent.add('Welcome to HopeBot! How can I help you today?');
-//     }
+// ====================
+// Alternative Bible API Webhook Endpoint Using Book, Chapter, Verse Parameters
+// ====================
+app.post('/bible-webhook', async (req, res) => {
+  try {
+    const { book, chapter, verse } = req.body.queryResult.parameters;
+    const apiUrl = `https://bible-api.com/${book}+${chapter}:${verse}`;
 
-//     function fallback(agent) {
-//         agent.add('Sorry , I didn’t get that. Can you try again?');
-//     }
-//     function getUserData(agent) {
-//         const name = agent.parameters.name; // Assuming name is a parameter in the intent
-//         return db.collection('users').add({name}).then(() => {
-//             agent.add(`Thanks ${name} , your data has been saved!`);
-//             }).catch((error) => {
-//             console.error('Error saving user data:', error);  
-//             });
-//             } 
+    const apiResponse = await axios.get(apiUrl);
+    const verseData = apiResponse.data;
 
-//     // Map the intent names to the handler functions
-//     // This allows Dialogflow to call the correct function based on the intent
-
-//     let intentMap = new Map();
-//     intentMap.set('Default Welcome Intent', welcome);
-//     intentMap.set('Default Fallback Intent', fallback);
-//     agent.handleRequest(intentMap);
-// });
-
-// //to handle facebook verification
-// app.get('/webhook', (req, res) => {
-//     let VERIFY_TOKEN = 'hopebot_verify';
-//     let mode = req.query['hub.mode'];
-//     let token = req.query['hub.verify_token'];
-//     let challenge = req.query['hub.challenge'];
-
-//     if (mode && token && mode === 'subscribe' && token === VERIFY_TOKEN) {
-//         res.status(200).send(challenge);
-//     } else {
-//         res.sendStatus(403);
-//     }
-// });
-
-// //receive messages and route to dialogflow
-// app.post('/webhook', async (req, res) => {
-//     let body = req.body;
-
-//     if (body.object === 'page') {
-//         body.entry.forEach(async function(entry) {
-//             let event = entry.messaging[0];
-//             let sender = event.sender.id;
-
-//             if (event.message && event.message.text) {
-//                 const text = event.message.text;
-
-//                 // Send text to Dialogflow
-//                 const dialogflowResponse = await detectIntent(text, sender);
-
-//                 // Send back to Messenger
-//                 sendMessage(sender, dialogflowResponse);
-//             }
-//         });
-//         res.status(200).send('EVENT_RECEIVED');
-//     } else {
-//         res.sendStatus(404);
-//     }
-// });
-
-
-
-// // Start the server
-// const PORT = process.env.PORT || 3000;
-// app.listen(PORT, () => console.log(`Webhook server is running on port ${PORT}`));
+    res.json({
+      fulfillmentText: `${verseData.reference}: ${verseData.text}`,
+      source: 'bible-api-webhook'
+    });
+  } catch (error) {
+    console.error(error);
+    res.json({ fulfillmentText: "Sorry, I couldn't retrieve that Bible verse." });
+  }
+});
