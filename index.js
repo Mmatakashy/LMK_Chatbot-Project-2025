@@ -65,7 +65,7 @@ app.listen(PORT, () => {
 // Firebase Admin SDK Initialization for Firestore
 // ====================
 var admin = require("firebase-admin");
-var serviceAccount = require("path/to/serviceAccountKey.json");
+var serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT || '{}');
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
   databaseURL: "https://hopebot-25b4f-default-rtdb.firebaseio.com"
@@ -153,7 +153,8 @@ app.post('/messenger-webhook', async (req, res) => {
 const dialogflow = require('@google-cloud/dialogflow');
 const uuid = require('uuid');
 async function detectIntent(text, sessionId) {
-  const sessionClient = new dialogflow.SessionsClient({ keyFilename: 'serviceAccountKey.json' });
+  const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT || '{}');
+  const sessionClient = new dialogflow.SessionsClient({ credentials: serviceAccount });
   const sessionPath = sessionClient.projectAgentSessionPath('<PROJECT_ID>', sessionId);
 
   const request = {
