@@ -1,0 +1,2 @@
+# Ignore environment variable files containing secrets
+firebase_service_account_env.txt
