@@ -20,7 +20,12 @@
   "dependencies": {
     "axios": "^1.10.0",
     "body-parser": "^2.2.0",
+<<<<<<< HEAD
     "dialogflow": "^1.2.0",
+=======
+    "dialogflow": "^4.0.3",
+    "dialogflow-fulfillment": "^0.5.0",
+>>>>>>> 6c7db39393e1d85d3bf542025d4ac31411d248f4
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "firebase-admin": "^13.4.0"
